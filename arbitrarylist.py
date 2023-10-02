@@ -267,6 +267,10 @@ class Arbitrarylist(commands.Cog):
 
             items = lists[list_name]["items"]
             if items:
+                list = lists[list_name]
+                if not(await self.able_to_view(user=ctx.author,list=list)):
+                    await self.no_view_perms_msg(ctx=ctx,list_name=list_name)
+                    return
 
                 page = 1
                 page_size = 0
@@ -531,7 +535,7 @@ class Arbitrarylist(commands.Cog):
         """
         dispPage = page_num
         lists = await self.config.guild(ctx.guild).lists()
-        matching_lists = [(list_name, list_data) for list_name, list_data in lists.items() if keyword in list_name]
+        matching_lists = [(list_name, list_data) for list_name, list_data in lists.items() if (keyword in list_name and await self.able_to_view(user=ctx.author,list=lists[list_name]))]
 
         if matching_lists:
             max_page_size = 1000  # Maximum characters allowed in an embed
@@ -543,6 +547,7 @@ class Arbitrarylist(commands.Cog):
             list_display = []
            
             for list_name, list_data in matching_lists:
+                
                 creator_id = list_data["creator_id"]
                 creator = ctx.guild.get_member(int(creator_id))
                 creator_name = creator.display_name if creator else "Unknown"
