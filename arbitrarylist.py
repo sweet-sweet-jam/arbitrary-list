@@ -493,6 +493,7 @@ class Arbitrarylist(commands.Cog):
         user_arg = user
         lists = await self.config.guild(ctx.guild).lists()
         if list_name in lists:
+            list = lists[list_name]
             if not(await self.able_to_view(user=ctx.author,list=list) and await self.able_to_edit(user=ctx.author,list=list)):
                 await self.no_edit_perms_msg(ctx=ctx,list_name=list_name)
                 return
