@@ -16,14 +16,14 @@ class Arbitrarylist(commands.Cog):
     async def able_to_view(self,user,list):
         return (list["creator_id"] == user.id
             or user.guild_permissions.administrator
-            or f"<@{str(user.id)}>" in list.get("allowed_users", [])
+            or f"<@{str(user.id)}>" in list["allowed_users"]
             or list["hidden"] == False
         )
 
     async def able_to_edit(self,user,list): 
         return (list["creator_id"] == user.id
             or user.guild_permissions.administrator
-            or f"<@{str(user.id)}>" in list.get("allowed_users", [])
+            or f"<@{str(user.id)}>" in list["allowed_users"]
             or list["locked"] == False
         )
     
@@ -428,6 +428,7 @@ class Arbitrarylist(commands.Cog):
         """
         lists = await self.config.guild(ctx.guild).lists()
         if list_name in lists:
+            list = lists[list_name]
             if not(await self.able_to_view(user=ctx.author,list=list)):
                 await self.no_view_perms_msg(ctx=ctx,list_name=list_name)
                 return
