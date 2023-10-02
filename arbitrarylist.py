@@ -132,7 +132,7 @@ class Arbitrarylist(commands.Cog):
             await(ctx.send(f"A list with the name **{list_name}** already exists"))
             return
         
-        all_command_names =  ["new","add","remove","allow","disallow","lock","unlock","delete","search","info","roll","show","hide", "transfer", "mylist"]
+        all_command_names =  ["new","add","remove","allow","disallow","lock","unlock","delete","search","info","roll","show","hide", "transfer", "mylists"]
         if list_name in all_command_names:
             await ctx.send(f"You cannot create a list with the same name as a command or subcommand.")
             return
