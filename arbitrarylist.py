@@ -662,7 +662,7 @@ class Arbitrarylist(commands.Cog):
                 if new_owner.isdigit():
                     new_owner = f"<@{new_owner}>"
                 mention_pattern = re.compile(r"<@(\d+)>")
-                match = mention_pattern.match(new_owner_arg)
+                match = mention_pattern.match(new_owner)
                 if match and ctx.guild.get_member(int(match.group(1))):
                     new_owner_id = int(match.group(1))
                     new_owner = ctx.guild.get_member(new_owner_id)
@@ -780,7 +780,7 @@ class Arbitrarylist(commands.Cog):
         )
 
         help_embed.add_field(
-            name="**mylists** 'pagenum`",
+            name="**mylists** `pagenum`",
             value="Search for lists you own. Optionally specify a page number",
             inline=False
         )
