@@ -157,7 +157,7 @@ class Arbitrarylist(commands.Cog):
         if items:
             item_list = items.split('^') if items.strip() else []
             if item_list[0][:5]=="desc:":
-                  lists[list_name]["desc"] =  item_list[0][5:]
+                  lists[list_name]["desc"] =  item_list[0][5:].replace("\n","")
                   item_list.pop(0)
             if len(item_list)>0:
                 lists[list_name]["items"].extend(item_list)
@@ -380,6 +380,7 @@ class Arbitrarylist(commands.Cog):
                 await self.no_edit_perms_msg(ctx=ctx,list_name=list_name)
                 return
             
+            description = description.replace("\n","")
             lists[list_name]["desc"] = description
             await self.config.guild(ctx.guild).lists.set(lists)
             await ctx.send(f"Description for **{list_name}** has been updated.")
