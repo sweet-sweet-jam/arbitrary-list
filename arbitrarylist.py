@@ -164,7 +164,10 @@ class Arbitrarylist(commands.Cog):
         await self.config.guild(ctx.guild).lists.set(lists)
         if items:
             if len( lists[list_name]["desc"])> 0:
-                 await ctx.send(f"Created a new list **{list_name}** with items: {', '.join(item_list)}"[0:1990])
+                if len(item_list)>0:
+                    await ctx.send(f"Created a new list **{list_name}** with items: {', '.join(item_list)}"[0:1990])
+                else:
+                    await ctx.send(f"Created a new empty list **{list_name}**.")
             else:
                 await ctx.send(f"Created a new list **{list_name}** with items: {', '.join(item_list)}"[0:1990])
         else:
