@@ -36,9 +36,7 @@ class Arbitrarylist(commands.Cog):
     async def no_list_exists_msg(self,ctx,list_name):
         await ctx.send(f"List **{list_name}** not found. Use `;al help` to view valid commands.")
 
-
     @commands.group(name="al",invoke_without_command=True)
-  
     async def al(self, ctx, list_name:str, page_num:int = 1):
         """
         Returns a list of a given name.
@@ -62,7 +60,14 @@ class Arbitrarylist(commands.Cog):
                             max_page_size = 3000
                             list_display = []
                             
+                            if page_num < 1:
+                                page_num = 1
+
                             things = []
+                            desc = lists[list_name]["desc"]
+                            if desc:
+                                list_display.append(desc)
+                                page_size += len(desc)
 
                             for i, item in enumerate(items):
                                 item_length = len(item)
@@ -83,8 +88,7 @@ class Arbitrarylist(commands.Cog):
                                 things.append("\n".join(list_display))
                                 page += 1
 
-                            if page_num < 1:
-                                page_num = 1
+                            
                             if page_num > len(things):
                                 page_num = len(things)
 
@@ -114,8 +118,7 @@ class Arbitrarylist(commands.Cog):
                     await self.no_view_perms_msg(ctx=ctx,list_name=list_name)
             else:
                 await self.no_list_exists_msg(ctx=ctx,list_name=list_name)
-      
-                        
+                             
     @al.command(name="new")
     async def create_list(self, ctx, list_name:str, *, items:str=None):
         """
@@ -124,7 +127,7 @@ class Arbitrarylist(commands.Cog):
         Parameters
         ----------
         list_name : The name of the list.
-        items : (Optional) The initial items to add to the list. Seperate items with `^`.
+        items : (Optional) The initial items to add to the list. Seperate items with `^`. If the first item given starts with `desc:` it will be set as the list's description instead.
     
         """
         lists = await self.config.guild(ctx.guild).lists()
@@ -132,7 +135,7 @@ class Arbitrarylist(commands.Cog):
             await(ctx.send(f"A list with the name **{list_name}** already exists"))
             return
         
-        all_command_names =  ["new","add","remove","allow","disallow","lock","unlock","delete","search","info","roll","show","hide", "transfer", "mylists"]
+        all_command_names =  ["new","add","remove","allow","disallow","lock","unlock","delete","search","info","roll","show","hide", "transfer", "mylists","removedesc","setdesc"]
         if list_name in all_command_names:
             await ctx.send(f"You cannot create a list with the same name as a command or subcommand.")
             return
@@ -149,16 +152,18 @@ class Arbitrarylist(commands.Cog):
             "locked": False,
             "hidden": False,
             "allowed_users": [],
+            "desc" : ""
         }
         if items:
             item_list = items.split('^') if items.strip() else []
+            if item_list[0][0:4]=="desc":
+                  lists[list_name]["desc"] =  item_list[0][5:]
             lists[list_name]["items"].extend(item_list)
         await self.config.guild(ctx.guild).lists.set(lists)
         if items:
             await ctx.send(f"Created a new list **{list_name}** with items: {', '.join(item_list)}"[0:1990])
         else:
             await ctx.send(f"Created a new empty list **{list_name}**.")
-
 
     @al.command(name="add")
     async def add_to_list(self, ctx, list_name:str, *, items:str):
@@ -190,7 +195,6 @@ class Arbitrarylist(commands.Cog):
 
         else:
             await self.no_list_exists_msg(ctx=ctx,list_name=list_name)
-
 
     @al.command(name="remove")
     async def remove_from_list(self, ctx, list_name:str, *, indices:str):
@@ -225,7 +229,6 @@ class Arbitrarylist(commands.Cog):
                 await ctx.send("Invalid item numbers.")
         else:
             await self.no_list_exists_msg(ctx=ctx,list_name=list_name)
-
 
     @al.command(name="delete")    
     async def delete_list(self, ctx, list_name):
@@ -277,6 +280,10 @@ class Arbitrarylist(commands.Cog):
                 max_page_size = 3000
                 list_display = []
                 
+                desc = lists[list_name]["desc"]
+                if desc:
+                    list_display.append(desc)
+                    page_size += len(desc)
 
                 for i, item in enumerate(items):
                     item_length = len(item)
@@ -303,7 +310,7 @@ class Arbitrarylist(commands.Cog):
             creator_id = list_data["creator_id"]
             creator = ctx.guild.get_member(int(creator_id))
             creator_name = creator.display_name if creator else "Unknown"
-
+            desc = list_data["desc"]
             locked = list_data["locked"]
             hidden = list_data["hidden"]
             allowed_users = list_data.get("allowed_users", [])
@@ -312,7 +319,9 @@ class Arbitrarylist(commands.Cog):
             top_role = ctx.author.top_role
             # Get the color of the top role
             role_color = top_role.color if top_role else discord.Color.default()
-            embed = discord.Embed(title=f"List Information: {list_name}", color = role_color)
+            embed = discord.Embed(title=f"List Name: {list_name}", color = role_color)
+            if len(desc) > 0:
+                embed.add_field(name="Description", value=desc[:1000], inline=True)
             embed.add_field(name="Number of Items", value=num_items, inline=True)
             embed.add_field(name="Number of Pages", value=num_pages, inline=True)
             embed.add_field(name="Owner", value=creator_name, inline=True)
@@ -321,13 +330,55 @@ class Arbitrarylist(commands.Cog):
 
             if allowed_users:
                 allowed_users_mentions = [f"{user_id}" for user_id in allowed_users]
-                embed.add_field(name="Allowed Users", value=', '.join(allowed_users_mentions)[:1000], inline=False)
+                embed.add_field(name="Allowed Users", value=', '.join(allowed_users_mentions)[:900], inline=False)
 
             await ctx.send(embed=embed)
         else:
             await self.no_list_exists_msg(ctx=ctx,list_name=list_name)
+    
+    @al.command(name="removedesc") 
+    async def remove_description(self, ctx, list_name,):
+        """
+        Remove the description of a list.    
+        """
+        lists = await self.config.guild(ctx.guild).lists()
+        if list_name in lists:
+            list = lists[list_name]
+            if not(await self.able_to_view(user=ctx.author,list=list) and await self.able_to_edit(user=ctx.author,list=list)):
+                await self.no_edit_perms_msg(ctx=ctx,list_name=list_name)
+                return
+            
+            lists[list_name]["desc"] = ""
+            await self.config.guild(ctx.guild).lists.set(lists)
+            await ctx.send(f"Description for **{list_name}** has been removed.")
+        else:
+           await self.no_list_exists_msg(ctx=ctx,list_name=list_name)
 
+    @al.command(name="setdesc") 
+    async def set_description(self, ctx, list_name, *,description:str):
+        """
+        Set the description of a list.
 
+        Parameters
+        ----------
+        list_name : The name of the list you want to lock.
+        description: the description you wish to give the list.
+    
+        """
+        lists = await self.config.guild(ctx.guild).lists()
+        if list_name in lists:
+            list = lists[list_name]
+            if not(await self.able_to_view(user=ctx.author,list=list) and await self.able_to_edit(user=ctx.author,list=list)):
+                await self.no_edit_perms_msg(ctx=ctx,list_name=list_name)
+                return
+            
+            lists[list_name]["desc"] = description
+            await self.config.guild(ctx.guild).lists.set(lists)
+            await ctx.send(f"Description for **{list_name}** has been updated.")
+        else:
+           await self.no_list_exists_msg(ctx=ctx,list_name=list_name)
+
+   
     @al.command(name="lock") 
     async def lock_list(self, ctx, list_name):
         """
@@ -687,7 +738,6 @@ class Arbitrarylist(commands.Cog):
             await self.no_list_exists_msg(ctx=ctx,list_name=list_name)
 
     @al.command(name="help") 
-
     async def display_help(self, ctx):
         """
         Display list of commands
@@ -777,6 +827,16 @@ class Arbitrarylist(commands.Cog):
         help_embed.add_field(
             name="**disallow** `listName` `userID`",
             value="Remove user from allowed editing a locked list or viewing a hidden list.",
+            inline=False
+        )
+        help_embed.add_field(
+            name="**setdesc** `listName` `description`",
+            value="Set the description of a list.",
+            inline=False
+        )
+        help_embed.add_field(
+            name="**removedesc** `listName`",
+            value="Remove the description of a list.",
             inline=False
         )
 
