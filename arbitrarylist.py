@@ -53,7 +53,7 @@ class Arbitrarylist(commands.Cog):
                 list = lists[list_name]
                 if await self.able_to_view(user=ctx.author, list=list):
                     items = lists[list_name]["items"]
-                    if items:
+                    if items or len(lists[list_name]["desc"])>0 :
                         try:
                             page = 1
                             page_size = 0
@@ -156,12 +156,17 @@ class Arbitrarylist(commands.Cog):
         }
         if items:
             item_list = items.split('^') if items.strip() else []
-            if item_list[0][0:4]=="desc":
+            if item_list[0][:5]=="desc:":
                   lists[list_name]["desc"] =  item_list[0][5:]
-            lists[list_name]["items"].extend(item_list)
+                  item_list.pop(0)
+            if len(item_list)>0:
+                lists[list_name]["items"].extend(item_list)
         await self.config.guild(ctx.guild).lists.set(lists)
         if items:
-            await ctx.send(f"Created a new list **{list_name}** with items: {', '.join(item_list)}"[0:1990])
+            if len( lists[list_name]["desc"])> 0:
+                 await ctx.send(f"Created a new list **{list_name}** with items: {', '.join(item_list)}"[0:1990])
+            else:
+                await ctx.send(f"Created a new list **{list_name}** with items: {', '.join(item_list)}"[0:1990])
         else:
             await ctx.send(f"Created a new empty list **{list_name}**.")
 
