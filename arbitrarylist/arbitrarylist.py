@@ -239,7 +239,7 @@ class Arbitrarylist(commands.Cog):
             await self.no_list_exists_msg(ctx=ctx,list_name=list_name)
 
     @al.command(name="delete")    
-    async def delete_list(self, ctx, list_name):
+    async def delete_list(self, ctx, list_name,*,overflow:str=""):
         """
         Deletes a list.
 
@@ -254,6 +254,8 @@ class Arbitrarylist(commands.Cog):
             if not(await self.able_to_view(user=ctx.author,list=list) and await self.able_to_edit(user=ctx.author,list=list)):
                 await self.no_edit_perms_msg(ctx=ctx,list_name=list_name)
                 return
+            if overflow == "":
+                await ctx.send(f"Too marny arguements. Did you mean to use `;al remove`?")
             del lists[list_name]
             await self.config.guild(ctx.guild).lists.set(lists)
             await ctx.send(f"Deleted list **{list_name}**.")
