@@ -256,6 +256,7 @@ class Arbitrarylist(commands.Cog):
                 return
             if overflow != "":
                 await ctx.send(f"Too many arguments. Did you mean to use `;al remove`?")
+                return
             del lists[list_name]
             await self.config.guild(ctx.guild).lists.set(lists)
             await ctx.send(f"Deleted list **{list_name}**.")
