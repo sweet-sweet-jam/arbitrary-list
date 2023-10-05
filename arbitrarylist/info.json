@@ -1,0 +1,11 @@
+{
+    "author" : ["jam (sweetjam1)"],
+    "install_msg" : "You have installed Arbitrary List cog. Get Jam'd.",
+    "name" : "arbitrary-list",
+    "short" : "Allows users to create and manage lists of items.",
+    "description" : "Allows users to create and manage lists of items. But looooooooooooooooooooooooooooooooooooooooong",
+    "tags" : ["list."],
+    "min_bot_version" : "3.5.",
+    "end_user_data_statement" : "Stores the users profiles and lists created by users",
+    "min_python_version " : "3.x"
+}
