@@ -135,7 +135,7 @@ class Arbitrarylist(commands.Cog):
             await(ctx.send(f"A list with the name **{list_name}** already exists"))
             return
         
-        all_command_names =  ["new","add","remove","allow","disallow","lock","unlock","delete","search","info","roll","show","hide", "transfer", "mylists","removedesc","setdesc"]
+        all_command_names =  ["rename","replace","new","add","remove","allow","disallow","lock","unlock","delete","search","info","roll","show","hide", "transfer", "mylists","removedesc","setdesc"]
         if list_name in all_command_names:
             await ctx.send(f"You cannot create a list with the same name as a command or subcommand.")
             return
@@ -207,7 +207,7 @@ class Arbitrarylist(commands.Cog):
     @al.command(name="remove")
     async def remove_from_list(self, ctx, list_name:str, *, indices:str):
         """
-        Add items to an existing List.
+        Remove items from an existing List.
 
         Parameters
         ----------
@@ -237,6 +237,86 @@ class Arbitrarylist(commands.Cog):
                 await ctx.send("Invalid item numbers.")
         else:
             await self.no_list_exists_msg(ctx=ctx,list_name=list_name)
+
+    @al.command(name="replace")
+    async def replace_item(self, ctx, list_name:str,index:int,new_item:str):
+        """
+        Replace an item on an existing list with a new item.
+
+        Parameters
+        ----------
+        list_name : The name of the list you want to change.
+        item_index : The item numbers to change.
+        new_item : The new item you wish to replace the old one with.
+    
+        """
+        lists = await self.config.guild(ctx.guild).lists()
+        if list_name in lists:
+            list = lists[list_name]
+            if not(await self.able_to_view(user=ctx.author,list=list) and await self.able_to_edit(user=ctx.author,list=list)):
+                await self.no_edit_perms_msg(ctx=ctx,list_name=list_name)
+                return
+            try:
+              
+                removed_item = []
+                if 1 <= index <= len(lists[list_name]["items"]):  # Adjusted index range to base-1
+                    removed_item.append(lists[list_name]["items"][index - 1])
+                    lists[list_name]["items"][index - 1] = new_item.strip()
+                await self.config.guild(ctx.guild).lists.set(lists)
+                if removed_item:
+                    await ctx.send(f"Replaced item from **{list_name}**: {removed_item}"[0:1990])
+                else:
+                    await ctx.send(f"Couln't replace item {index} from **{list_name}**")
+            except ValueError:
+                await ctx.send("Invalid item numbers.")
+        else:
+            await self.no_list_exists_msg(ctx=ctx,list_name=list_name)
+
+    @al.command(name="rename")
+    async def rename_list(self, ctx, list_name:str, new_name:str):
+        """
+        Rename an existing list.
+
+        Parameters
+        ----------
+        list_name : The name of the list you want to rename.
+        new_name : The new name you wish to use.
+    
+        """
+        lists = await self.config.guild(ctx.guild).lists()
+        if list_name in lists:
+            list = lists[list_name]
+            if not(await self.able_to_view(user=ctx.author,list=list) and await self.able_to_edit(user=ctx.author,list=list)):
+                await self.no_edit_perms_msg(ctx=ctx,list_name=list_name)
+                return
+            
+        if new_name in lists:
+            await(ctx.send(f"A list with the name **{new_name}** already exists"))
+            return
+        
+        all_command_names =  ["rename","replace","new","add","remove","allow","disallow","lock","unlock","delete","search","info","roll","show","hide", "transfer", "mylists","removedesc","setdesc"]
+        if new_name in all_command_names:
+            await ctx.send(f"You cannot give a list the same name as a command or subcommand.")
+            return
+        
+        if len(new_name) > 50:
+            await ctx.send("List name too long. What are you trying to do, kill me?")
+            return
+        
+
+        
+        lists[new_name] = {
+            "items": list["items"],
+            "creator_id": list["creator_id"],
+            "locked": list["locked"],
+            "hidden": list["hidden"],
+            "allowed_users": list["allowed_users"],
+            "desc" : list["desc"]
+        }
+
+        del lists[list_name]
+        await self.config.guild(ctx.guild).lists.set(lists)
+        await ctx.send(f"Renamed list **{list_name}** to **{new_name}**.")
 
     @al.command(name="delete")    
     async def delete_list(self, ctx, list_name,*,overflow:str=""):
@@ -389,8 +469,7 @@ class Arbitrarylist(commands.Cog):
             await ctx.send(f"Description for **{list_name}** has been updated.")
         else:
            await self.no_list_exists_msg(ctx=ctx,list_name=list_name)
-
-   
+  
     @al.command(name="lock") 
     async def lock_list(self, ctx, list_name):
         """
@@ -482,6 +561,30 @@ class Arbitrarylist(commands.Cog):
             await ctx.send(f"List **{list_name}** has been shown. Any user can view it.")
         else:
            await self.no_list_exists_msg(ctx=ctx,list_name=list_name)
+
+    @commands.command()
+    async def punish(self,ctx, list_name):
+        """
+        Rolls a random it from a list. Alias of ;al roll
+
+        Parameters
+        ----------
+        list_name : The name of the list you want to roll from.
+    
+        """
+        self.roll_from_list(ctx=ctx,list_name=list_name)
+    
+    @commands.command()
+    async def funish(self,ctx, list_name):
+        """
+        Rolls a random it from a list. Alias of ;al roll
+
+        Parameters
+        ----------
+        list_name : The name of the list you want to roll from.
+    
+        """
+        self.roll_from_list(ctx=ctx,list_name=list_name)
 
     @al.command(name="roll") 
     async def roll_from_list(self, ctx, list_name):
@@ -849,6 +952,16 @@ class Arbitrarylist(commands.Cog):
         help_embed.add_field(
             name="**removedesc** `listName`",
             value="Remove the description of a list.",
+            inline=False
+        )
+        help_embed.add_field(
+            name="**rename** `listName` `newName`",
+            value="Rename a list",
+            inline=False
+        )
+        help_embed.add_field(
+            name="**Replace** `listName` `itemNumber` `newItem`",
+            value="Replace an item in a list with a new item.",
             inline=False
         )
 
