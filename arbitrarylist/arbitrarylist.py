@@ -264,7 +264,7 @@ class Arbitrarylist(commands.Cog):
                     lists[list_name]["items"][index - 1] = new_item.strip()
                 await self.config.guild(ctx.guild).lists.set(lists)
                 if removed_item:
-                    await ctx.send(f"Replaced item from **{list_name}**: {removed_item}"[0:1990])
+                    await ctx.send(f"Replaced item from **{list_name}**: {', '.join(removed_item)}"[0:1990])
                 else:
                     await ctx.send(f"Couln't replace item {index} from **{list_name}**")
             except ValueError:
@@ -561,19 +561,6 @@ class Arbitrarylist(commands.Cog):
             await ctx.send(f"List **{list_name}** has been shown. Any user can view it.")
         else:
            await self.no_list_exists_msg(ctx=ctx,list_name=list_name)
-
-    @commands.command(name="punish",aliases=["funish"])
-    async def punish(self,ctx, list_name):
-        """
-        Rolls a random it from a list. Alias of ;al roll
-
-        Parameters
-        ----------
-        list_name : The name of the list you want to roll from.
-    
-        """
-        self.roll_from_list(ctx=ctx,list_name=list_name)
-
 
 
     @al.command(name="roll") 
