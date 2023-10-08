@@ -562,7 +562,7 @@ class Arbitrarylist(commands.Cog):
         else:
            await self.no_list_exists_msg(ctx=ctx,list_name=list_name)
 
-    @commands.command()
+    @commands.command(name="punish",aliases=["funish"])
     async def punish(self,ctx, list_name):
         """
         Rolls a random it from a list. Alias of ;al roll
@@ -573,18 +573,8 @@ class Arbitrarylist(commands.Cog):
     
         """
         self.roll_from_list(ctx=ctx,list_name=list_name)
-    
-    @commands.command()
-    async def funish(self,ctx, list_name):
-        """
-        Rolls a random it from a list. Alias of ;al roll
 
-        Parameters
-        ----------
-        list_name : The name of the list you want to roll from.
-    
-        """
-        self.roll_from_list(ctx=ctx,list_name=list_name)
+
 
     @al.command(name="roll") 
     async def roll_from_list(self, ctx, list_name):
